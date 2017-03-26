@@ -20,12 +20,16 @@ module.exports = NodeHelper.create({
 			channel = this.config.channels[i];
 			this.client.attachChannel(channel.id, { writeKey:channel.writeKey, readKey:channel.readKey}, this.callBackThingspeak);
 		}
-		channel = this.config.channels[0];
 		
-		var self = this
-		this.client.getLastEntryInFieldFeed(channel.id, channel.fields[0], query, function(err, resp) {
-			self.sendSocketNotification("THINGSPEAK_DATA", resp);
-		});
+		var self = this;
+                setInterval(function () {
+			channel = this.config.channels[0];
+			this.client.getFieldFeed(channel.id, channel.fields[0], query, function(err, resp) {
+				self.sendSocketNotification("THINGSPEAK_DATA", resp);
+			});
+                }, self.config.updateInterval);
+
+
 		//console.log("THINGSPEAK: " + callBack);
 		//this.sendSocketNotification("THINGSPEAK_DATA", callBack);
 	}

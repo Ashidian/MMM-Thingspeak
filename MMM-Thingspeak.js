@@ -17,7 +17,7 @@ Module.register("MMM-Thingspeak",{
 				readKey: "XXXXXXXXXXXXXXX",
 				writeKey: "XXXXXXXXXXXXXXX",
 				fields: [1],
-				updateInterval: 2 * 60 * 1000, // every 10 minutes
+				updateInterval: 10 * 60 * 1000, // every 10 minutes
 				updateTimeout: 15
 			}
 		],
@@ -37,7 +37,18 @@ Module.register("MMM-Thingspeak",{
 
 	socketNotificationReceived: function(notification, payload) {
 		if (notification === "THINGSPEAK_DATA") {
-			this.defaults.data = payload;
+
+			this.defaults.data = [ ];
+			for (var i = 0; i < payload.feeds.length; i++) {
+			    feed = payload.feeds[i];
+			    this.defaults.data.push({ 
+				x : Date.parse(feed.created_at),
+				y : parseInt(feed.field1)
+			    });
+			}
+
+			this.sendNotification('HIGHCHARTS_REFRESH', this.defaults.data);
+
 			this.updateDom();
 		}
 	},
@@ -46,7 +57,7 @@ Module.register("MMM-Thingspeak",{
 	getDom: function() {
 		this.defaults.i = this.defaults.i + 1;
 		var wrapper = document.createElement("div");
-		wrapper.innerHTML = JSON.stringify(this.defaults.data);
+		//wrapper.innerHTML = JSON.stringify(this.defaults.data);
 		return wrapper;
 	}
 });
