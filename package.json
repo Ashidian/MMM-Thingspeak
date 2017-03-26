@@ -1,0 +1,22 @@
+{
+  "name": "MMM-Thingspeak",
+  "version": "1.0.0",
+  "description": "Magic Mirror Receive and Write Thingspeak Channel",
+  "keywords": [
+    "magic mirror",
+    "smart mirror",
+    "Thingspeak",
+    "module"
+  ],
+  "scripts": {
+    "postinstall": "node_modules/.bin/electron-rebuild -e ../../node_modules/electron"
+  },
+  "author": "Ashidian",
+  "license": "MIT",
+  "dependencies": {
+    "thingspeakclient": "^0.4.0"
+  },
+  "devDependencies": {
+    "electron-rebuild": "^1.2.1"
+  }
+}
