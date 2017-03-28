@@ -16,48 +16,80 @@ Module.register("MMM-Thingspeak",{
 				id: 0,
 				readKey: "XXXXXXXXXXXXXXX",
 				writeKey: "XXXXXXXXXXXXXXX",
-				fields: [1],
+				fields: [1, 2],
+				query : null, // see https://de.mathworks.com/help/thingspeak/get-a-channel-feed.html valid parameters
 				updateInterval: 10 * 60 * 1000, // every 10 minutes
-				updateTimeout: 15
+				updateTimeout: 15,
+				receiveKeyword: "HIGHCHARTS_REFRESH", // notification for sendNotification()
+				convertToHighCharts: true
 			}
 		],
-		data : null
 	},
 	
 
 	start: function () {
 		Log.log("Starting module: " + this.name);
 
-		//var self = this;
-		//setInterval(function() {
-		//	self.updateDom();
-		//}, 1000);
 		this.sendSocketNotification('START', this.config);
 	},
 
 	socketNotificationReceived: function(notification, payload) {
-		if (notification === "THINGSPEAK_DATA") {
 
-			this.defaults.data = [ ];
-			for (var i = 0; i < payload.feeds.length; i++) {
-			    feed = payload.feeds[i];
-			    this.defaults.data.push({ 
-				x : Date.parse(feed.created_at),
-				y : parseInt(feed.field1)
-			    });
+		for (i = 0; i < channels.length; i++)
+		{
+			if (channel.receiveKeyword === notification)
+			{
+				if (this.config.convertToHighCharts)
+				{
+					payload = convertPayloadToHighCharts(payload);
+				}
+
+				this.sendNotification(notification, payload);
+			
+				break;
 			}
-
-			this.sendNotification('HIGHCHARTS_REFRESH', this.defaults.data);
-
-			this.updateDom();
 		}
 	},
 
+	convertPayloadToHighCharts: function(payload)
+	{
+		options = {
+			series : [],
+			title: {
+				text: payload.channel.name
+			}
+		};
+		channel = channels[i];
+
+		for (j = 0; j < channel.fields.length; j++) {
+			f = channel.fields[j];
+			options.series.push({
+				name : payload.channel['field' + f.toString()],
+				data : []
+			});
+		}
+		for (var a = 0; a < payload.feeds.length; a++) {
+			feed = payload.feeds[a];
+			created = Date.parse(feed.created_at);
+			for (j = 0; j < channel.fields.length) {
+				f = channel.fields[j];
+				if (feed['field' + f.toString()] != null)
+				{
+					options.series[j].data.push({
+						x : created,
+						y : parseInt(feed['field' + f.toString()])
+					});
+				}
+			}
+		}
+		return options;
+	},
+
 	// Override dom generator.
-	getDom: function() {
-		this.defaults.i = this.defaults.i + 1;
-		var wrapper = document.createElement("div");
+	//getDom: function() {
+	//	this.defaults.i = this.defaults.i + 1;
+	//	var wrapper = document.createElement("div");
 		//wrapper.innerHTML = JSON.stringify(this.defaults.data);
-		return wrapper;
-	}
+	//	return wrapper;
+	//}
 });
